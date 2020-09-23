@@ -1,14 +1,7 @@
-//Sleep Mode mit WDT-Wecken
-//Code fuer Attiny
-//Author Retian
-//Version 1.0
-
-
 #include <avr/sleep.h>
 #include <avr/wdt.h>
 
-#define LED_PIN 4
-#define POT_PIN 2
+#define FET_PIN 4
 #define BTN_PIN 3
 
 #define BTN_THRESHOLD 3000
@@ -23,8 +16,7 @@ unsigned long released_time = 0;
 // ---------------------------------------------------- main code ---------------------------------------------------
 void setup() 
 {
-  pinMode(LED_PIN, OUTPUT);
-  pinMode(POT_PIN, INPUT);
+  pinMode(FET_PIN, OUTPUT);
   pinMode(BTN_PIN, INPUT);
 
   setupWatchdog();
@@ -36,7 +28,10 @@ void loop()
 {
   if(detectLongPress())
   {
-    digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+    //TODO
+    //read current vcc multiples times, average result
+    //store value in eeprom
+    //confirm with blinking leds
   }
   else if (!digitalRead(BTN_PIN)) //if button is not pressed atm
   {
@@ -87,7 +82,7 @@ void sleep()
 */
 void setThreshold()
 {
- 
+  //TODO see above
 }
 
 /*
@@ -143,11 +138,11 @@ ISR(WDT_vect)
   //Good morning
   if(measureVCC() <= 3)
   {
-    digitalWrite(LED_PIN, HIGH);
+    digitalWrite(FET_PIN, LOW);
   }
   else
   {
-    digitalWrite(LED_PIN, LOW);
+    digitalWrite(FET_PIN, HIGH);
   }
 }
 
