@@ -14,13 +14,11 @@ void loop() {
 
   if(vref >= 3)
   {
-    digitalWrite(4,HIGH);
-    digitalWrite(3,LOW);
+    digitalWrite(4,LOW);
   }
   else
   {
-    digitalWrite(4,LOW);
-    digitalWrite(3,HIGH);
+    digitalWrite(4,HIGH);
   }
 }
 

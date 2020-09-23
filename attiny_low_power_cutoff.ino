@@ -19,8 +19,6 @@ bool ready_2_call = true;
 unsigned long last_press_time  = 0;
 unsigned long released_time = 0;
 
-void sleep(void);
-void setConfig();
 
 // ---------------------------------------------------- main code ---------------------------------------------------
 void setup() 
@@ -42,8 +40,9 @@ void loop()
   }
   else if (!digitalRead(BTN_PIN)) //if button is not pressed atm
   {
-    sleep();
+     sleep();
   }
+
 }
 
 // ---------------------------------------------- additional functions ---------------------------------------------
@@ -65,7 +64,6 @@ void setupWatchdog()
   sei();
 }
 
-
 /*
   sets attiny into sleep mode
 */
@@ -84,7 +82,6 @@ void sleep()
   ADCSRA = adcsra; //ADCSRA-Register rueckspeichern
 }
 
-
 /*
   configures the threshold at which the cutoff is triggered
 */
@@ -93,6 +90,25 @@ void setThreshold()
  
 }
 
+/*
+  measures VCC
+*/
+double measureVCC(void)
+{
+    PRR    &=~(1 << PRADC);                                           // power ADC (p. 38)
+    ADCSRA  = (1 << ADEN)| (1 << ADPS2)| (1 << ADPS1)| (1 << ADPS0);  // enable ADC, Set prescaler to 128 (p.136)
+    ADMUX   = (1 << REFS2) | 0x0c;                                    // set vcc as reference voltage + bangap ref as adc input (p. 134f)
+    _delay_ms(1);                                                     // settling time, see p.134 in ATtiny Datasheet
+
+    ADCSRA |= (1 << ADSC);                                            // start conversion (p. 136)
+    while (!(ADCSRA & (1 << ADIF)));                                  // wait for conversino to complete, ~100 us (p.136)
+    ADCSRA |= (1 << ADIF);                                            // clear ADIF (p. 136)
+    return 1024*1.1f/(double)ADC;
+}
+
+/*
+  as the name implies, detects a long push of the button connected to the BTN_PIN
+*/
 bool detectLongPress()
 {
     current_btn_state = digitalRead(BTN_PIN);
@@ -125,17 +141,17 @@ bool detectLongPress()
 ISR(WDT_vect)
 {
   //Good morning
-  int a = 0;
-  delay(1000);
-  a++;
+  if(measureVCC() <= 3)
+  {
+    digitalWrite(LED_PIN, HIGH);
+  }
+  else
+  {
+    digitalWrite(LED_PIN, LOW);
+  }
 }
 
 ISR(PCINT0_vect)
 {
-  
+  //dummy button ISR
 }
-
-
-
-
-//Mehr Infos: https://arduino-projekte.webnode.at/meine-projekte/attiny-im-schlafmodus/wecken-mit-wdt/
