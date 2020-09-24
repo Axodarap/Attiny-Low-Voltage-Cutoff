@@ -13,7 +13,7 @@ bool ready_2_call = true;
 unsigned long last_press_time  = 0;
 unsigned long released_time = 0;
 double voltage_threshold = 0;
-double hysterese = 0.1;   
+double hysterese = 0.2;   
 
 // ---------------------------------------------------- main code ---------------------------------------------------
 void setup() 
@@ -22,9 +22,7 @@ void setup()
   pinMode(STAT_LED_PIN, OUTPUT);
   pinMode(BTN_PIN, INPUT);
 
-digitalWrite(STAT_LED_PIN, HIGH);
   EEPROM.get(0, voltage_threshold);  //reads voltage_threshold from EEPROM
-  digitalWrite(STAT_LED_PIN, LOW);
   powerMonitor();   //initial power reading, will be repeated periodically in ISR of watchdog timer
   setupWatchdog();
   sleep();
@@ -40,6 +38,7 @@ void loop()
   else if (!digitalRead(BTN_PIN)) //if button is not pressed atm
   {
      sleep();
+     powerMonitor();
   }
 }
 
@@ -151,13 +150,15 @@ bool detectLongPress()
 */
 void powerMonitor()
 {
-  if(measureVCC() <= voltage_threshold)
+  if(measureVCC() < voltage_threshold)
   {
     digitalWrite(FET_PIN, LOW);
+    //digitalWrite(STAT_LED_PIN, HIGH);
   }
-  else if(measureVCC() >= (voltage_threshold + hysterese))
+  else if(measureVCC() > (voltage_threshold + hysterese))
   {
     digitalWrite(FET_PIN, HIGH);
+    //digitalWrite(STAT_LED_PIN, LOW);
   }
 }
 
