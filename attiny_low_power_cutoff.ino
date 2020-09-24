@@ -7,12 +7,13 @@
 #define STAT_LED_PIN 2
 #define BTN_THRESHOLD 3000
 
-bool current_btn_state = false;
+bool curent_btn_state = false;
 bool previous_btn_state = false;
 bool ready_2_call = true;
 unsigned long last_press_time  = 0;
 unsigned long released_time = 0;
 double voltage_threshold = 0;
+double hysterese = 0.5;   
 
 // ---------------------------------------------------- main code ---------------------------------------------------
 void setup() 
@@ -21,7 +22,10 @@ void setup()
   pinMode(STAT_LED_PIN, OUTPUT);
   pinMode(BTN_PIN, INPUT);
 
+digitalWrite(STAT_LED_PIN, HIGH);
   EEPROM.get(0, voltage_threshold);  //reads voltage_threshold from EEPROM
+  digitalWrite(STAT_LED_PIN, LOW);
+  powerMonitor();   //initial power reading, will be repeated periodically in ISR of watchdog timer
   setupWatchdog();
   sleep();
 }
@@ -79,13 +83,13 @@ void sleep()
 void setThreshold()
 {
   double buf = 0;
-  short n = 10;
+  short n = 30;
   
   for(int i=0; i<n; i++)
   {
     buf += measureVCC(); 
   }
-  voltage_threshold = buf/10;
+  voltage_threshold = buf/n;
   EEPROM.put(0, voltage_threshold); 
 
  for(int j=0; j<5; j++)
@@ -118,9 +122,9 @@ double measureVCC(void)
 */
 bool detectLongPress()
 {
-    current_btn_state = digitalRead(BTN_PIN);
+    curent_btn_state = digitalRead(BTN_PIN);
 
-   if(current_btn_state)
+   if(curent_btn_state)
    {
     if(!previous_btn_state)  //button pressed
     {
@@ -138,8 +142,23 @@ bool detectLongPress()
     ready_2_call = true;
    }
    
-    previous_btn_state = current_btn_state;
+    previous_btn_state = curent_btn_state;
     return false;
+}
+
+/*
+  turns the mosfet off/on accordign to curent voltage level
+*/
+void powerMonitor()
+{
+  if(measureVCC() <= voltage_threshold)
+  {
+    digitalWrite(FET_PIN, LOW);
+  }
+  else if(measureVCC() >= (voltage_threshold + hysterese))
+  {
+    digitalWrite(FET_PIN, HIGH);
+  }
 }
 
 /*
@@ -148,14 +167,7 @@ bool detectLongPress()
 ISR(WDT_vect)
 {
   //Good morning
-  if(measureVCC() <= voltage_threshold)
-  {
-    digitalWrite(FET_PIN, LOW);
-  }
-  else
-  {
-    digitalWrite(FET_PIN, HIGH);
-  }
+  powerMonitor();
 }
 
 ISR(PCINT0_vect)
