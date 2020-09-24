@@ -13,7 +13,7 @@ bool ready_2_call = true;
 unsigned long last_press_time  = 0;
 unsigned long released_time = 0;
 double voltage_threshold = 0;
-double hysterese = 0.5;   
+double hysterese = 0.1;   
 
 // ---------------------------------------------------- main code ---------------------------------------------------
 void setup() 
