@@ -4,7 +4,7 @@
 
 #define FET_PIN 4
 #define BTN_PIN 3
-#define LED_PIN 2
+#define STAT_LED_PIN 2
 #define BTN_THRESHOLD 3000
 
 bool current_btn_state = false;
@@ -18,7 +18,7 @@ double voltage_threshold = 0;
 void setup() 
 {
   pinMode(FET_PIN, OUTPUT);
-  pinMode(LED_PIN, OUTPUT);
+  pinMode(STAT_LED_PIN, OUTPUT);
   pinMode(BTN_PIN, INPUT);
 
   EEPROM.get(0, voltage_threshold);  //reads voltage_threshold from EEPROM
@@ -37,7 +37,6 @@ void loop()
   {
      sleep();
   }
-
 }
 
 // ---------------------------------------------- additional functions ---------------------------------------------
@@ -91,9 +90,9 @@ void setThreshold()
 
  for(int j=0; j<5; j++)
  {
-  digitalWrite(LED_PIN, HIGH);
+  digitalWrite(STAT_LED_PIN, HIGH);
   delay(250);
-  digitalWrite(LED_PIN, LOW);
+  digitalWrite(STAT_LED_PIN, LOW);
   delay(250);
  }
 }
