@@ -1,9 +1,10 @@
 #include <avr/sleep.h>
 #include <avr/wdt.h>
+#include <EEPROM.h>
 
 #define FET_PIN 4
 #define BTN_PIN 3
-
+#define LED_PIN 2
 #define BTN_THRESHOLD 3000
 
 bool current_btn_state = false;
@@ -11,14 +12,16 @@ bool previous_btn_state = false;
 bool ready_2_call = true;
 unsigned long last_press_time  = 0;
 unsigned long released_time = 0;
-
+double voltage_threshold = 0;
 
 // ---------------------------------------------------- main code ---------------------------------------------------
 void setup() 
 {
   pinMode(FET_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
   pinMode(BTN_PIN, INPUT);
 
+  EEPROM.get(0, voltage_threshold);  //reads voltage_threshold from EEPROM
   setupWatchdog();
   sleep();
 }
@@ -28,10 +31,7 @@ void loop()
 {
   if(detectLongPress())
   {
-    //TODO
-    //read current vcc multiples times, average result
-    //store value in eeprom
-    //confirm with blinking leds
+    setThreshold();
   }
   else if (!digitalRead(BTN_PIN)) //if button is not pressed atm
   {
@@ -82,7 +82,27 @@ void sleep()
 */
 void setThreshold()
 {
-  //TODO see above
+  //TODO
+  //read current vcc multiples times, average result
+  //store value in eeprom
+  //confirm with blinking leds
+  double buf = 0;
+  short n = 10;
+  
+  for(int i=0; i<n; i++)
+  {
+    buf += measureVCC(); 
+  }
+  voltage_threshold = buf/10;
+  EEPROM.put(0, voltage_threshold); 
+
+ for(int j=0; j<5; j++)
+ {
+  digitalWrite(LED_PIN, HIGH);
+  delay(250);
+  digitalWrite(LED_PIN, LOW);
+  delay(250);
+ }
 }
 
 /*
@@ -136,7 +156,7 @@ bool detectLongPress()
 ISR(WDT_vect)
 {
   //Good morning
-  if(measureVCC() <= 3)
+  if(measureVCC() <= voltage_threshold)
   {
     digitalWrite(FET_PIN, LOW);
   }
