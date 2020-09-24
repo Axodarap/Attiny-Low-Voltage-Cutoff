@@ -22,6 +22,9 @@ void setup()
   pinMode(STAT_LED_PIN, OUTPUT);
   pinMode(BTN_PIN, INPUT);
 
+  pinMode(0,INPUT_PULLUP);
+  pinMode(1,INPUT_PULLUP);  //unused pins (p. 57)
+
   EEPROM.get(0, voltage_threshold);  //reads voltage_threshold from EEPROM
   powerMonitor();   //initial power reading, will be repeated periodically in ISR of watchdog timer
   setupWatchdog();
