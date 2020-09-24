@@ -46,17 +46,16 @@ void loop()
 */
 void setupWatchdog()
 {
-    //Setzen des Registers fuer Watchdog Time-out Interrupt
-  cli();
-  wdt_reset(); // Reset Watchdog Timer
-  MCUSR &= ~(1 << WDRF); //Ruecksetzen des Watchdog System Reset Flag
-  WDTCR = (1 << WDCE); //Watchdog Change Enable setzen
-  WDTCR = (1 << WDP3); //Watchdog Zyklus = 4 s
-  WDTCR |= (1 << WDIE); //Watchdog Timeout Interrupt Enable setzen
+  cli();                   // clear global interrupt flag in SREG
+  wdt_reset();             // reset Watchdog Timer
+  MCUSR &=~(1 << WDRF);    // reset watchdog reset flag (p. 44f)
+  WDTCR  = (1 << WDCE);    // set watchdog change enable
+  WDTCR  = (1 << WDP3);    // set watchdog timer prescale to 4s (p. 46)
+  WDTCR |= (1 << WDIE);    // set watchdog timer interrupt
   //configuring Pin-Change-Interrupt
-  GIMSK |= (1 << PCIE);
-  PCMSK |= (1 << PCINT3); //(PCINT3)  ==> Pin PB3
-  sei();
+  GIMSK |= (1 << PCIE);    // set pin change interrupt enable
+  PCMSK |= (1 << PCINT3);  //(PCINT3)  ==> set Pin PB3 as the interrupt pin
+  sei();                   // enable global interrupt flag in SREG
 }
 
 /*
@@ -66,15 +65,13 @@ void sleep()
 {
   byte adcsra;
 
-  adcsra = ADCSRA; //ADC Control and Status Register A sichern
-  ADCSRA &= ~(1 << ADEN); //ADC ausschalten
-
-  MCUCR |= (1 << SM1) & ~(1 << SM0); //Sleep-Modus = Power Down
-  MCUCR |= (1 << SE); //Sleep Enable setzen
-  sleep_cpu(); //Schlafe ....
-  MCUCR &= ~(1 << SE); //Sleep Disable setzen
-
-  ADCSRA = adcsra; //ADCSRA-Register rueckspeichern
+  adcsra = ADCSRA;                    //backup adc control and status register
+  ADCSRA &= ~(1 << ADEN);             //disable ADC (p. 136)
+  MCUCR |= (1 << SM1) & ~(1 << SM0);  //set sleep mode to power down (p. 38)
+  MCUCR |= (1 << SE);                 //enable sleep mode (p. 37)
+  sleep_cpu();                        //sleep
+  MCUCR &= ~(1 << SE);                //disable sleep mode (p. 37)
+  ADCSRA = adcsra;                    //reset control and status register to previously saved state
 }
 
 /*
@@ -82,10 +79,6 @@ void sleep()
 */
 void setThreshold()
 {
-  //TODO
-  //read current vcc multiples times, average result
-  //store value in eeprom
-  //confirm with blinking leds
   double buf = 0;
   short n = 10;
   
