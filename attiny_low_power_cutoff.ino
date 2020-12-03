@@ -4,7 +4,7 @@
 
 #define FET_PIN 4
 #define BTN_PIN 3
-#define STAT_LED_PIN 2
+#define STAT_LED_PIN 1
 #define BTN_THRESHOLD 3000
 
 bool curent_btn_state = false;
