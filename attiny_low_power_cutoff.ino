@@ -3,7 +3,7 @@
 #include <EEPROM.h>
 
 #define FET_PIN 4
-#define BTN_PIN 3
+#define BTN_PIN 3 
 #define STAT_LED_PIN 1
 #define BTN_THRESHOLD 3000
 
@@ -12,21 +12,21 @@ bool previous_btn_state = false;
 bool ready_2_call = true;
 unsigned long last_press_time  = 0;
 unsigned long released_time = 0;
-double voltage_threshold = 0;
-double hysterese = 0.2;   
+float voltage_threshold = 0;
+float hysterese = 0.2;   
 
 // ---------------------------------------------------- main code ---------------------------------------------------
 void setup() 
 {
   pinMode(FET_PIN, OUTPUT);
   pinMode(STAT_LED_PIN, OUTPUT);
-  pinMode(BTN_PIN, INPUT);
+  pinMode(BTN_PIN, INPUT_PULLUP);
 
   pinMode(0,INPUT_PULLUP);
-  pinMode(1,INPUT_PULLUP);  //unused pins (p. 57)
+  pinMode(1,INPUT_PULLUP);			//unused pins (p. 57)
 
-  EEPROM.get(0, voltage_threshold);  //reads voltage_threshold from EEPROM
-  powerMonitor();   //initial power reading, will be repeated periodically in ISR of watchdog timer
+  EEPROM.get(0, voltage_threshold);	//reads voltage_threshold from EEPROM
+  powerMonitor();					//initial power reading, will be repeated periodically in ISR of watchdog timer
   setupWatchdog();
   sleep();
 }
@@ -38,7 +38,7 @@ void loop()
   {
     setThreshold();
   }
-  else if (!digitalRead(BTN_PIN)) //if button is not pressed atm
+  else if (digitalRead(BTN_PIN))	//if button is not pressed atm
   {
      sleep();
      powerMonitor();
@@ -124,7 +124,7 @@ double measureVCC(void)
 */
 bool detectLongPress()
 {
-    curent_btn_state = digitalRead(BTN_PIN);
+    curent_btn_state = !digitalRead(BTN_PIN);
 
    if(curent_btn_state)
    {
@@ -149,19 +149,19 @@ bool detectLongPress()
 }
 
 /*
-  turns the mosfet off/on accordign to curent voltage level
+  turns the mosfet off/on according to curent voltage level
 */
 void powerMonitor()
 {
   if(measureVCC() < voltage_threshold)
   {
-    digitalWrite(FET_PIN, LOW);
-    //digitalWrite(STAT_LED_PIN, HIGH);
+    digitalWrite(FET_PIN, HIGH);	//turn off
+    digitalWrite(STAT_LED_PIN, HIGH);
   }
   else if(measureVCC() > (voltage_threshold + hysterese))
   {
-    digitalWrite(FET_PIN, HIGH);
-    //digitalWrite(STAT_LED_PIN, LOW);
+    digitalWrite(FET_PIN, LOW);		//turn on
+    digitalWrite(STAT_LED_PIN, LOW);
   }
 }
 
@@ -176,5 +176,5 @@ ISR(WDT_vect)
 
 ISR(PCINT0_vect)
 {
-  //dummy button ISR
+  //not used atm
 }
